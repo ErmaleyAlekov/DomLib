@@ -1,6 +1,9 @@
-import DomElement;
-import DomFile;
-import utils;
+package com.nuxeo.extender.FileParser;
+
+import com.nuxeo.extender.FileCreater.DomElement;
+import com.nuxeo.extender.FileCreater.DomFile;
+import com.nuxeo.extender.Logger.Logger;
+import com.nuxeo.extender.utils.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,9 +37,10 @@ public class FileParser {
                     {
                         elementsMap.get(element.getLvl()).add(element);
                     }
-                    if (elementsMap.containsKey(element.getLvl()-1))
+                    if (element.getLvl()!=0
+                            &&elementsMap.containsKey(getPreLvl(element.getLvl(),elementsMap.keySet())))
                     {
-                        List<DomElement> lstParent = elementsMap.get(element.getLvl()-1);
+                        List<DomElement> lstParent = elementsMap.get(getPreLvl(element.getLvl(),elementsMap.keySet()));
                         DomElement dom = lstParent.get(lstParent.size()-1);
                         if (dom!=null)
                             dom.getChilds().add(element);
@@ -231,6 +235,16 @@ public class FileParser {
             result.setAttributes(attributes);
         }
         return result;
+    }
+
+    public Integer getPreLvl(int lvl, Set<Integer> keys){
+        Integer pre = 0;
+        for (Integer l: keys) {
+            if (l == lvl)
+                return pre;
+            pre = l;
+        }
+        return pre;
     }
 
     public DomFile getFile() {
