@@ -1,9 +1,6 @@
-package com.nuxeo.extender.FileParser;
-
-import com.nuxeo.extender.FileCreater.DomElement;
-import com.nuxeo.extender.FileCreater.DomFile;
-import com.nuxeo.extender.Logger.Logger;
-import com.nuxeo.extender.utils.utils;
+import DomElement;
+import DomFile;
+import utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -66,7 +63,6 @@ public class FileParser {
         }
         catch (Exception e){
             e.printStackTrace();
-            Logger.addLog(e.getMessage());
         }
     }
 
