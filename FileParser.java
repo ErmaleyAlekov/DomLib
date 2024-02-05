@@ -10,59 +10,62 @@ import java.util.*;
 public class FileParser {
     private DomFile file = new DomFile();
     public void parseFile(String path){
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(path));
-            List<DomElement> elements = new ArrayList<>();
-            LinkedHashMap<Integer, List<DomElement>> elementsMap = new LinkedHashMap<>();
-            String line;
-            DomElement element = new DomElement();
-            while ((line = reader.readLine()) != null) {
-                if (element.getBuffer().length()==0||!element.getName().equals("default"))
-                    element = parseLine(line);
-                else
-                    element = parseLine(line, element);
-                if (!element.getName().equals("default")
-                        &&!element.getName().contains("?")
-                        &&!element.getName().contains("!")){
-                    if (!elementsMap.containsKey(element.getLvl()))
-                    {
-                        List<DomElement> lst = new ArrayList<>();
-                        lst.add(element);
-                        elementsMap.put(element.getLvl(), lst);
-                    }
+        if (path!=null) {
+            try 
+            {
+                BufferedReader reader = new BufferedReader(new FileReader(path));
+                List<DomElement> elements = new ArrayList<>();
+                LinkedHashMap<Integer, List<DomElement>> elementsMap = new LinkedHashMap<>();
+                String line;
+                DomElement element = new DomElement();
+                while ((line = reader.readLine()) != null) {
+                    if (element.getBuffer().length()==0||!element.getName().equals("default"))
+                        element = parseLine(line);
                     else
-                    {
-                        elementsMap.get(element.getLvl()).add(element);
+                        element = parseLine(line, element);
+                    if (!element.getName().equals("default")
+                            &&!element.getName().contains("?")
+                            &&!element.getName().contains("!")){
+                        if (!elementsMap.containsKey(element.getLvl()))
+                        {
+                            List<DomElement> lst = new ArrayList<>();
+                            lst.add(element);
+                            elementsMap.put(element.getLvl(), lst);
+                        }
+                        else
+                        {
+                            elementsMap.get(element.getLvl()).add(element);
+                        }
+                        if (element.getLvl()!=0
+                                &&elementsMap.containsKey(getPreLvl(element.getLvl(),elementsMap.keySet())))
+                        {
+                            List<DomElement> lstParent = elementsMap.get(getPreLvl(element.getLvl(),elementsMap.keySet()));
+                            DomElement dom = lstParent.get(lstParent.size()-1);
+                            if (dom!=null)
+                                dom.getChilds().add(element);
+                        }
+                        elements.add(element);
+                    } else if (element.getName().contains("?")) {
+                        element.setHaveEndTag(false);
+                        file.setHeader(element.toString().replaceAll("/>","?>"));
                     }
-                    if (element.getLvl()!=0
-                            &&elementsMap.containsKey(getPreLvl(element.getLvl(),elementsMap.keySet())))
-                    {
-                        List<DomElement> lstParent = elementsMap.get(getPreLvl(element.getLvl(),elementsMap.keySet()));
-                        DomElement dom = lstParent.get(lstParent.size()-1);
-                        if (dom!=null)
-                            dom.getChilds().add(element);
-                    }
-                    elements.add(element);
-                } else if (element.getName().contains("?")) {
-                    element.setHaveEndTag(false);
-                    file.setHeader(element.toString().replaceAll("/>","?>"));
-                }
-                else if (!line.contains("</")&& utils.checkEmptyString(line)&&!line.contains("<")
-                        &&!line.contains(">")&&!element.getName().equals("default")) {
-                    if (!elements.isEmpty()){
-                        DomElement last = elements.get(elements.size()-1);
-                        if (last!=null&&utils.checkLastChar(last.getText(),'\n'))
-                            last.setText(last.getText()+line+System.lineSeparator());
-                        else if (last!=null&&!utils.checkLastChar(last.getText(),'\n')) {
-                            last.setText(last.getText()+System.lineSeparator()+line+System.lineSeparator());
+                    else if (!line.contains("</")&& utils.checkEmptyString(line)&&!line.contains("<")
+                            &&!line.contains(">")&&!element.getName().equals("default")) {
+                        if (!elements.isEmpty()){
+                            DomElement last = elements.get(elements.size()-1);
+                            if (last!=null&&utils.checkLastChar(last.getText(),'\n'))
+                                last.setText(last.getText()+line+System.lineSeparator());
+                            else if (last!=null&&!utils.checkLastChar(last.getText(),'\n')) {
+                                last.setText(last.getText()+System.lineSeparator()+line+System.lineSeparator());
+                            }
                         }
                     }
                 }
+                file.setBody(elementsMap.get(0));
             }
-            file.setBody(elementsMap.get(0));
-        }
-        catch (Exception e){
-            e.printStackTrace();
+            catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 
