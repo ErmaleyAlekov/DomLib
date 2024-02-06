@@ -11,7 +11,7 @@ public class FileParser {
     private DomFile file = new DomFile();
     public void parseFile(String path){
         if (path!=null) {
-            try 
+            try
             {
                 BufferedReader reader = new BufferedReader(new FileReader(path));
                 List<DomElement> elements = new ArrayList<>();
@@ -19,44 +19,49 @@ public class FileParser {
                 String line;
                 DomElement element = new DomElement();
                 while ((line = reader.readLine()) != null) {
-                    if (element.getBuffer().length()==0||!element.getName().equals("default"))
-                        element = parseLine(line);
-                    else
-                        element = parseLine(line, element);
-                    if (!element.getName().equals("default")
-                            &&!element.getName().contains("?")
-                            &&!element.getName().contains("!")){
-                        if (!elementsMap.containsKey(element.getLvl()))
-                        {
-                            List<DomElement> lst = new ArrayList<>();
-                            lst.add(element);
-                            elementsMap.put(element.getLvl(), lst);
-                        }
+                    if (element.getNotFullText()!=null&&element.getNotFullText().equals("true"))
+                        parseTextValue(line,element);
+                    else {
+                        if (element.getBuffer().length()==0||!element.getName().equals("default"))
+                            element = parseLine(line);
                         else
-                        {
-                            elementsMap.get(element.getLvl()).add(element);
+                            element = parseLine(line, element);
+                        if (!element.getName().equals("default")
+                                &&!element.getName().contains("?")
+                                &&!element.getName().contains("!")){
+                            if (!elementsMap.containsKey(element.getLvl()))
+                            {
+                                List<DomElement> lst = new ArrayList<>();
+                                lst.add(element);
+                                elementsMap.put(element.getLvl(), lst);
+                            }
+                            else
+                            {
+                                elementsMap.get(element.getLvl()).add(element);
+                            }
+                            if (element.getLvl()!=0
+                                    &&elementsMap.containsKey(getPreLvl(element.getLvl(),elementsMap.keySet())))
+                            {
+                                List<DomElement> lstParent = elementsMap.get(getPreLvl(element.getLvl(),elementsMap.keySet()));
+                                DomElement dom = lstParent.get(lstParent.size()-1);
+                                if (dom!=null)
+                                    dom.getChilds().add(element);
+                            }
+                            elements.add(element);
+                        } else if (element.getName().contains("?")) {
+                            element.setHaveEndTag(false);
+                            file.setHeader(element.toString().replaceAll("/>","?>"));
+                            element = new DomElement();
                         }
-                        if (element.getLvl()!=0
-                                &&elementsMap.containsKey(getPreLvl(element.getLvl(),elementsMap.keySet())))
-                        {
-                            List<DomElement> lstParent = elementsMap.get(getPreLvl(element.getLvl(),elementsMap.keySet()));
-                            DomElement dom = lstParent.get(lstParent.size()-1);
-                            if (dom!=null)
-                                dom.getChilds().add(element);
-                        }
-                        elements.add(element);
-                    } else if (element.getName().contains("?")) {
-                        element.setHaveEndTag(false);
-                        file.setHeader(element.toString().replaceAll("/>","?>"));
-                    }
-                    else if (!line.contains("</")&& utils.checkEmptyString(line)&&!line.contains("<")
-                            &&!line.contains(">")&&!element.getName().equals("default")) {
-                        if (!elements.isEmpty()){
-                            DomElement last = elements.get(elements.size()-1);
-                            if (last!=null&&utils.checkLastChar(last.getText(),'\n'))
-                                last.setText(last.getText()+line+System.lineSeparator());
-                            else if (last!=null&&!utils.checkLastChar(last.getText(),'\n')) {
-                                last.setText(last.getText()+System.lineSeparator()+line+System.lineSeparator());
+                        else if (!line.contains("</")&& utils.checkEmptyString(line)&&!line.contains("<")
+                                &&!line.contains(">")&&!element.getName().equals("default")) {
+                            if (!elements.isEmpty()){
+                                DomElement last = elements.get(elements.size()-1);
+                                if (last!=null&&utils.checkLastChar(last.getText(),'\n'))
+                                    last.setText(last.getText()+line+System.lineSeparator());
+                                else if (last!=null&&!utils.checkLastChar(last.getText(),'\n')) {
+                                    last.setText(last.getText()+System.lineSeparator()+line+System.lineSeparator());
+                                }
                             }
                         }
                     }
@@ -69,6 +74,21 @@ public class FileParser {
         }
     }
 
+    public void parseTextValue(String line, DomElement element) {
+        if (line!=null&& element!=null){
+            StringBuilder sb = new StringBuilder();
+            for (char c:line.toCharArray()) {
+                if (c=='<')
+                {
+                    element.setText(element.getText()+System.lineSeparator()+sb);
+                    element.setNotFullText("false");
+                    return;
+                }
+                sb.append(c);
+            }
+            element.setText(element.getText()+System.lineSeparator()+sb);
+        }
+    }
     public DomElement parseLine(String line) {
         DomElement result = new DomElement();
         if (line!=null){
@@ -95,11 +115,17 @@ public class FileParser {
                         }
                         else{
                             StringBuilder txt = new StringBuilder();
-                            for (int j = i+1;j<chars.length && chars[j]!='<';j++){
+                            for (int j = i+1;j<chars.length;j++){
+                                if(chars[j]=='<'){
+                                    result.setNotFullText("false");
+                                    break;
+                                }
                                 txt.append(chars[j]);
                             }
                             result.setText(txt.toString());
                             result.setLvl(countSpaces/2);
+                            if (result.getNotFullText()==null&&txt.length()>0)
+                                result.setNotFullText("true");
                         }
                         break;
                     }
@@ -136,10 +162,16 @@ public class FileParser {
                     }
                     else{
                         StringBuilder txt = new StringBuilder();
-                        for (int j = i+1;j<chars.length && chars[j]!='<';j++){
+                        for (int j = i+1;j<chars.length;j++){
+                            if(chars[j]=='<'){
+                                result.setNotFullText("false");
+                                break;
+                            }
                             txt.append(chars[j]);
                         }
                         result.setText(txt.toString());
+                        if (result.getNotFullText()==null&&txt.length()>0)
+                            result.setNotFullText("true");
                     }
                     break;
                 }

@@ -5,6 +5,8 @@ public class DomElement {
     private String name;
     private String text;
     private boolean haveEndTag;
+
+    private String notFullText;
     private List<DomElement> childs;
     private Map<String, String> attributes;
     private int lvl;
@@ -86,6 +88,14 @@ public class DomElement {
         setHaveEndTag(true);
         setChilds(childs);
         setAttributes(new HashMap<>());
+    }
+
+    public void setNotFullText(String notFullText) {
+        this.notFullText = notFullText;
+    }
+
+    public String getNotFullText() {
+        return notFullText;
     }
 
     public StringBuilder getBuffer() {
