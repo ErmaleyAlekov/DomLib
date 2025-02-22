@@ -138,7 +138,6 @@ public class DomFile {
             }
             catch (Exception e){
                 e.printStackTrace();
-                Logger.addLog(e.getMessage());
             }
         }
     }
