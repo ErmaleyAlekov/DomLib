@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -128,7 +129,7 @@ public class DomFile {
                 StringBuilder stringBuilder = new StringBuilder();
                 for (DomElement element:body)
                     stringBuilder.append(element.toString()).append(System.lineSeparator());
-                try (PrintWriter out = new PrintWriter(path+ File.separator+name+"."+type)){
+                try (PrintWriter out = new PrintWriter(path+ File.separator+name+"."+type, StandardCharsets.UTF_8)){
                     if (header!=null)
                         out.println(header+System.lineSeparator()+System.lineSeparator()+stringBuilder);
                     else

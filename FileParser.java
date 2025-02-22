@@ -5,6 +5,7 @@ import utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class FileParser {
@@ -13,7 +14,7 @@ public class FileParser {
         if (path!=null) {
             try
             {
-                BufferedReader reader = new BufferedReader(new FileReader(path));
+                BufferedReader reader = new BufferedReader(new FileReader(path), StandardCharsets.UTF_8);
                 List<DomElement> elements = new ArrayList<>();
                 LinkedHashMap<Integer, List<DomElement>> elementsMap = new LinkedHashMap<>();
                 String line;
@@ -207,10 +208,10 @@ public class FileParser {
                     if (chars[i] != ' '&&chars[i] != '=')
                         key.append(chars[i]);
                 }
-                else if (chars[i] != '\"') {
+                else if (chars[i] != '\"' && chars[i] != '\'') {
                     value.append(chars[i]);
                 }
-                if (chars[i] == '\"')
+                if (chars[i] == '\"' || chars[i] == '\'')
                     count++;
                 if (chars[i] == '=')
                     flag = false;

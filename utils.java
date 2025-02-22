@@ -37,7 +37,6 @@ public class utils {
             }
             catch (Exception e){
                 e.printStackTrace();
-                Logger.addLog(e.getMessage());
             }
         }
         return result;
@@ -55,7 +54,6 @@ public class utils {
             }
             catch (Exception e){
                 e.printStackTrace();
-                Logger.addLog(e.getMessage());
             }
         }
         return result;
